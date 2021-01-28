@@ -9,13 +9,13 @@
 " - this plugin was already loaded (or disabled)
 " - when 'compatible' is set
 
-if &cp || exists("g:autoloaded_memolist")
+if &compatible || exists('g:autoloaded_memolist')
   finish
 endif
 let g:autoloaded_memolist= '1'
 
-let s:cpo_save = &cpo
-set cpo&vim
+let s:cpo_save = &cpoptions
+set cpoptions&vim
 
 " Utility Functions {{{1
 function! s:error(str)
@@ -53,7 +53,7 @@ function! s:get_items_from_yaml_front_matter()
   for line in s:get_yaml_front_matter()
     let item_name = matchstr(line, '\v^.+\ze:')
     let item_value = matchstr(line, '\v^.+:\s+\zs.+\ze$')
-    if item_value[0] == '[' && item_value[-1:-1] == ']'
+    if item_value[0] ==? '[' && item_value[-1:-1] ==? ']'
       let item_tmp = split(item_value[1:-2], g:memolist_delimiter_yaml_array)
       unlet item_value
       let item_value = item_tmp
@@ -69,15 +69,15 @@ endfunction
 " setting
 "------------------------
 if !exists('g:memolist_memo_suffix')
-  let g:memolist_memo_suffix = "markdown"
+  let g:memolist_memo_suffix = 'markdown'
 endif
 
 if !exists('g:memolist_memo_date')
-  let g:memolist_memo_date = "%Y-%m-%d %H:%M"
+  let g:memolist_memo_date = '%Y-%m-%d %H:%M'
 endif
 
 if !exists('g:memolist_filename_date')
-  let g:memolist_filename_date = "%Y-%m-%d-"
+  let g:memolist_filename_date = '%Y-%m-%d-'
 endif
 
 if !exists('g:memolist_title_pattern')
@@ -85,44 +85,44 @@ if !exists('g:memolist_title_pattern')
 endif
 
 if !exists('g:memolist_template_dir_path')
-  let g:memolist_template_dir_path = ""
+  let g:memolist_template_dir_path = ''
 endif
 
 if !exists('g:memolist_vimfiler_option')
-  let g:memolist_vimfiler_option = "-split -winwidth=50"
+  let g:memolist_vimfiler_option = '-split -winwidth=50'
 endif
 
 if !exists('g:memolist_unite_source')
-  let g:memolist_unite_source = "file"
+  let g:memolist_unite_source = 'file'
 endif
 
 if !exists('g:memolist_denite_source')
   let s:denite_ver = (exists('*denite#get_status_mode') ? 2 : 3)
   if s:denite_ver == 3
-    let g:memolist_denite_source = "file/rec"
+    let g:memolist_denite_source = 'file/rec'
   else
-    let g:memolist_denite_source = "file_rec"
+    let g:memolist_denite_source = 'file_rec'
   endif
 endif
 
 if !exists('g:memolist_unite_option')
-  let g:memolist_unite_option = ""
+  let g:memolist_unite_option = ''
 endif
 
 if !exists('g:memolist_denite_option')
-  let g:memolist_denite_option = ""
+  let g:memolist_denite_option = ''
 endif
 
 if !exists('g:memolist_delimiter_yaml_array')
-  let g:memolist_delimiter_yaml_array = " "
+  let g:memolist_delimiter_yaml_array = ' '
 endif
 
 if !exists('g:memolist_delimiter_yaml_start')
-  let g:memolist_delimiter_yaml_start = "=========="
+  let g:memolist_delimiter_yaml_start = '=========='
 endif
 
 if !exists('g:memolist_delimiter_yaml_end')
-  let g:memolist_delimiter_yaml_end  = "- - -"
+  let g:memolist_delimiter_yaml_end  = '- - -'
 endif
 
 function! s:esctitle(str)
@@ -148,17 +148,17 @@ endif
 "------------------------
 function! memolist#list()
   if get(g:, 'memolist_vimfiler', 0) != 0
-    exe "VimFiler" g:memolist_vimfiler_option s:escarg(g:memolist_path)
+    exe 'VimFiler' g:memolist_vimfiler_option s:escarg(g:memolist_path)
   elseif get(g:, 'memolist_unite', 0) != 0
-    exe "Unite" g:memolist_unite_source.':'.escape(s:escarg(g:memolist_path), ':') g:memolist_unite_option
+    exe 'Unite' g:memolist_unite_source.':'.escape(s:escarg(g:memolist_path), ':') g:memolist_unite_option
   elseif get(g:, 'memolist_denite', 0) != 0
-    exe "Denite" g:memolist_denite_source.':'.escape(s:escarg(g:memolist_path), ':') g:memolist_denite_option
+    exe 'Denite' g:memolist_denite_source.':'.escape(s:escarg(g:memolist_path), ':') g:memolist_denite_option
   elseif get(g:, 'memolist_fzf', 0) != 0
-    exe "FZF" s:escarg(g:memolist_path)
+    exe 'Files' s:escarg(g:memolist_path)
   elseif !empty(get(g:, 'memolist_ex_cmd', ''))
     exe g:memolist_ex_cmd s:escarg(g:memolist_path)
   else
-    exe "e" s:escarg(g:memolist_path)
+    exe 'e' s:escarg(g:memolist_path)
   endif
 endfunction
 
@@ -168,18 +168,18 @@ endfunction
 
 function! memolist#grep(word)
   let word = a:word
-  if word == ''
-    let word = input("MemoGrep word: ")
+  if word ==? ''
+    let word = input('MemoGrep word: ')
   endif
-  if word == ''
+  if word ==? ''
     return
   endif
 
   try
     if get(g:, 'memolist_qfixgrep', 0) != 0
-      exe "Vimgrep -r" s:escarg(word) s:escarg(g:memolist_path . "/*")
+      exe 'Vimgrep -r' s:escarg(word) s:escarg(g:memolist_path . '/*')
     else
-      exe "vimgrep" '/' . s:escarg(word) . '/jg' s:escarg(g:memolist_path . "/*") . '|' "copen"
+      exe 'vimgrep' '/' . s:escarg(word) . '/jg' s:escarg(g:memolist_path . '/*') . '|' 'copen'
     endif
   catch
     redraw | echohl ErrorMsg | echo v:exception | echohl None
@@ -187,7 +187,7 @@ function! memolist#grep(word)
 endfunction
 
 function! memolist#_complete_ymdhms(...)
-  return [strftime("%Y%m%d%H%M")]
+  return [strftime('%Y%m%d%H%M')]
 endfunction
 
 function! memolist#new(title)
@@ -210,28 +210,28 @@ endfunction
 
 function! memolist#new_with_meta(title, tags, categories)
   let items = {
-  \ 'title': a:title,
-  \ 'date':  localtime(),
-  \ 'tags':  s:join_without_empty(a:tags),
-  \ 'categories': s:join_without_empty(a:categories),
-  \}
+        \ 'title': a:title,
+        \ 'date':  localtime(),
+        \ 'tags':  s:join_without_empty(a:tags),
+        \ 'categories': s:join_without_empty(a:categories),
+        \}
 
-  if g:memolist_memo_date != 'epoch'
+  if g:memolist_memo_date !=? 'epoch'
     let items['date'] = strftime(g:memolist_memo_date)
   endif
-  if items['title'] == ''
-    let items['title']= input("Memo title: ", "", "customlist,memolist#_complete_ymdhms")
+  if items['title'] ==? ''
+    let items['title']= input('Memo title: ', '', 'customlist,memolist#_complete_ymdhms')
   endif
-  if items['title'] == ''
+  if items['title'] ==? ''
     return
   endif
 
   if get(g:, 'memolist_prompt_tags', 0) != 0 && empty(items['tags'])
-    let items['tags'] = s:join_without_empty(input("Memo tags: "))
+    let items['tags'] = s:join_without_empty(input('Memo tags: '))
   endif
 
   if get(g:, 'memolist_prompt_categories', 0) != 0 && empty(items['categories'])
-    let items['categories'] = s:join_without_empty(input("Memo categories: "))
+    let items['categories'] = s:join_without_empty(input('Memo categories: '))
   endif
 
   if get(g:, 'memolist_filename_prefix_none', 0) != 0
@@ -240,18 +240,18 @@ function! memolist#new_with_meta(title, tags, categories)
     let file_name = strftime(g:memolist_filename_date) . s:esctitle(items['title'])
   endif
   if stridx(items['title'], '.') == -1
-    let file_name = file_name . "." . g:memolist_memo_suffix
+    let file_name = file_name . '.' . g:memolist_memo_suffix
   endif
 
-  echo "Making that memo " . file_name
-  exe (&l:modified ? "sp" : "e") s:escarg(g:memolist_path . "/" . file_name)
+  echo 'Making that memo ' . file_name
+  exe (&l:modified ? 'sp' : 'e') s:escarg(g:memolist_path . '/' . file_name)
 
-  if !filereadable(s:escarg(g:memolist_path . "/" . file_name))
+  if !filereadable(s:escarg(g:memolist_path . '/' . file_name))
     " memo template
     let template = s:default_template
-    if g:memolist_template_dir_path != ""
-      let path = expand(g:memolist_template_dir_path, ":p")
-      let path = path . "/" . g:memolist_memo_suffix . ".txt"
+    if g:memolist_template_dir_path !=? ''
+      let path = expand(g:memolist_template_dir_path, ':p')
+      let path = path . '/' . g:memolist_memo_suffix . '.txt'
       if filereadable(path)
         let template = readfile(path)
       endif
@@ -267,22 +267,22 @@ function! memolist#new_with_meta(title, tags, categories)
 endfunction
 
 let s:default_template = [
-\ 'title: {{_title_}}',
-\ '==========',
-\ 'date: {{_date_}}',
-\ 'tags: [{{_tags_}}]',
-\ 'categories: [{{_categories_}}]',
-\ '- - -',
-\]
+      \ 'title: {{_title_}}',
+      \ '==========',
+      \ 'date: {{_date_}}',
+      \ 'tags: [{{_tags_}}]',
+      \ 'categories: [{{_categories_}}]',
+      \ '- - -',
+      \]
 
 function! s:apply_template(template, items)
   let mx = '{{_\(\w\+\)_}}'
   return map(copy(a:template), "
-  \  substitute(v:val, mx,
-  \   '\\=has_key(a:items, submatch(1)) ? a:items[submatch(1)] : submatch(0)', 'g')
-  \")
+        \  substitute(v:val, mx,
+        \   '\\=has_key(a:items, submatch(1)) ? a:items[submatch(1)] : submatch(0)', 'g')
+        \")
 endfunction
 
-let &cpo = s:cpo_save
+let &cpoptions = s:cpo_save
 
 " vim:set ft=vim ts=2 sw=2 sts=2:
